@@ -23,3 +23,19 @@ Now let us pretend we want do deploy all of these resources several times.
 In our example we need two completely separate installations of the whole stack, one for _cats_ and one for _dogs_. Furthermore, as it is well known that cats are better conversationalists, we expect a higher load there and would like to give the respective _redis-slave_ twice the resource requests.
 
 Another natural reason for this duplication could be a deployment pipeline with promotion across stages like _dev_, _staging_ and _prod_, where one also might to save on resources for the earlier stages.
+
+## Tools
+
+### kubectl
+
+_kubectl_ is the included CLI of all Kubernetes clusters, supporting declarative deployments using YAML-based Kubernetes manifests.
+
+There is not much more to do than manually duplicate everything when using plain _kubectl_:
+
+```bash
+kubectl apply -f kubectl/cats-guestbook.yaml
+kubectl apply -f kubectl/dogs-guestbook.yaml
+```
+
+Note that the two files are very similar but not exactly the same.
+It is quite easy to see how a setup like this is not very maintainable.

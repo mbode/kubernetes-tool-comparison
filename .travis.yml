@@ -14,8 +14,17 @@ before_script:
 - minikube update-context
 # Wait for Kubernetes to be up and ready.
 - JSONPATH='{range .items[*]}{@.metadata.name}:{range @.status.conditions[*]}{@.type}={@.status};{end}{end}'; until kubectl get nodes -o jsonpath="$JSONPATH" 2>&1 | grep -q "Ready=True"; do sleep 1; done
-
-script:
 - kubectl cluster-info 
-- kubectl apply -f guestbook.yaml
-- curl $(minikube service frontend --url) | grep -q "<title>Guestbook</title>"
+
+jobs:
+  include:
+  - stage: guestbook
+    script:
+    - kubectl apply -f guestbook.yaml
+    - curl $(minikube service frontend --url) | grep -q "<title>Guestbook</title>"
+  - stage: kubectl
+    script:
+    - kubectl apply -f kubectl/cats-guestbook.yaml
+    - kubectl apply -f kubectl/dogs-guestbook.yaml
+    - curl $(minikube service cats-frontend --url) | grep -q "<title>Guestbook</title>"
+    - curl $(minikube service dogs-frontend --url) | grep -q "<title>Guestbook</title>"

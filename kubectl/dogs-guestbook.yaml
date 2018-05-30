@@ -1,0 +1,135 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: dogs-redis-master
+  labels:
+    app: dogs-redis
+    tier: backend
+    role: master
+spec:
+  ports:
+  - port: 6379
+    targetPort: 6379
+  selector:
+    app: dogs-redis
+    tier: backend
+    role: master
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dogs-redis-master
+spec:
+  selector:
+    matchLabels:
+      app: dogs-redis
+      role: master
+      tier: backend
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: dogs-redis
+        role: master
+        tier: backend
+    spec:
+      containers:
+      - name: master
+        image: k8s.gcr.io/redis:e2e
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        ports:
+        - containerPort: 6379
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dogs-redis-slave
+  labels:
+    app: dogs-redis
+    tier: backend
+    role: slave
+spec:
+  ports:
+  - port: 6379
+  selector:
+    app: dogs-redis
+    tier: backend
+    role: slave
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dogs-redis-slave
+spec:
+  selector:
+    matchLabels:
+      app: dogs-redis
+      role: slave
+      tier: backend
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: dogs-redis
+        role: slave
+        tier: backend
+    spec:
+      containers:
+      - name: slave
+        image: gcr.io/google_samples/gb-redisslave:v1
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        env:
+        - name: GET_HOSTS_FROM
+          value: dns
+        ports:
+        - containerPort: 6379
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dogs-frontend
+  labels:
+    app: dogs-guestbook
+    tier: frontend
+spec:
+  type: NodePort
+  ports:
+  - port: 80
+  selector:
+    app: dogs-guestbook
+    tier: frontend
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dogs-frontend
+spec:
+  selector:
+    matchLabels:
+      app: dogs-guestbook
+      tier: frontend
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: dogs-guestbook
+        tier: frontend
+    spec:
+      containers:
+      - name: php-redis
+        image: gcr.io/google-samples/gb-frontend:v4
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        env:
+        - name: GET_HOSTS_FROM
+          value: dns
+        ports:
+        - containerPort: 80
