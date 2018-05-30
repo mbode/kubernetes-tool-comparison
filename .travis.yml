@@ -17,5 +17,5 @@ before_script:
 
 script:
 - kubectl cluster-info 
-- kubectl apply -f kubectl/guestbook.yaml
+- kubectl apply -f guestbook.yaml
 - curl $(minikube service frontend --url) | grep -q "<title>Guestbook</title>"
