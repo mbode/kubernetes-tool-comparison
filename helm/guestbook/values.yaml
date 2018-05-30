@@ -1,0 +1,6 @@
+suffix: ""
+
+redis_slave:
+  requests:
+    cpu: 100m
+    memory: 100Mi

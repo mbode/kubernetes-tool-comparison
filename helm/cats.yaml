@@ -1,0 +1,6 @@
+suffix: "cats-"
+
+redis_slave:
+  requests:
+    cpu: 200m
+    memory: 200Mi
