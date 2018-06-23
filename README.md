@@ -5,6 +5,13 @@
 This repository shows how to deploy the [K8s guestbook example](https://github.com/kubernetes/examples/tree/master/guestbook) using a variety of deployment tools.
 For more details on the example check out the [tutorial in the K8s docs](https://kubernetes.io/docs/tutorials/stateless-application/guestbook/).
 
+## Table of Contents
+
+  * [Use Case](#use-case)
+  * [Tools](#tools)
+     * [kubectl](#kubectl)
+     * [Helm](#helm)
+
 ## Use Case
 
 [guestbook.yaml](guestbook.yaml) contains the vanilla guestbook Kubernetes manifest, defining the following resources:
@@ -22,7 +29,7 @@ kubectl apply -f guestbook.yaml
 Now let us pretend we want do deploy all of these resources several times.
 In our example we need two completely separate installations of the whole stack, one for _cats_ and one for _dogs_. Furthermore, as it is well known that cats are better conversationalists, we expect a higher load there and would like to give the respective _redis-slave_ twice the resource requests.
 
-Another natural reason for this duplication could be a deployment pipeline with promotion across stages like _dev_, _staging_ and _prod_, where one also might to save on resources for the earlier stages.
+Another natural reason for this duplication could be a deployment pipeline with promotion across stages like _dev_, _staging_ and _prod_, where one also might prefer e.g. different resource requests or replica counts to save on resources for the earlier stages.
 
 ## Tools
 
@@ -39,3 +46,13 @@ kubectl apply -f kubectl/dogs-guestbook.yaml
 
 Note that the two files are very similar but not exactly the same.
 It is quite easy to see how a setup like this is not very maintainable.
+
+### Helm
+
+[Helm](https://github.com/kubernetes/helm) is a package manager for Kubernetes.
+Reusable pieces are packaged in _Charts_ that can be customized during installation with values that are templated into the Kubernetes manifests.
+
+```bash
+helm install -f helm/cats.yaml helm/guestbook
+helm install -f helm/dogs.yaml helm/guestbook
+```

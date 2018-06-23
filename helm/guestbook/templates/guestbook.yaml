@@ -1,0 +1,135 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.suffix }}redis-master
+  labels:
+    app: {{ .Values.suffix }}redis
+    tier: backend
+    role: master
+spec:
+  ports:
+  - port: 6379
+    targetPort: 6379
+  selector:
+    app: {{ .Values.suffix }}redis
+    tier: backend
+    role: master
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.suffix }}redis-master
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.suffix }}redis
+      role: master
+      tier: backend
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.suffix }}redis
+        role: master
+        tier: backend
+    spec:
+      containers:
+      - name: master
+        image: k8s.gcr.io/redis:e2e
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        ports:
+        - containerPort: 6379
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.suffix }}redis-slave
+  labels:
+    app: {{ .Values.suffix }}redis
+    tier: backend
+    role: slave
+spec:
+  ports:
+  - port: 6379
+  selector:
+    app: {{ .Values.suffix }}redis
+    tier: backend
+    role: slave
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.suffix }}redis-slave
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.suffix }}redis
+      role: slave
+      tier: backend
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.suffix }}redis
+        role: slave
+        tier: backend
+    spec:
+      containers:
+      - name: slave
+        image: gcr.io/google_samples/gb-redisslave:v1
+        resources:
+          requests:
+            cpu: {{ .Values.redis_slave.requests.cpu }}
+            memory: {{ .Values.redis_slave.requests.cpu }}
+        env:
+        - name: GET_HOSTS_FROM
+          value: dns
+        ports:
+        - containerPort: 6379
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.suffix }}frontend
+  labels:
+    app: {{ .Values.suffix }}guestbook
+    tier: frontend
+spec:
+  type: NodePort
+  ports:
+  - port: 80
+  selector:
+    app: {{ .Values.suffix }}guestbook
+    tier: frontend
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.suffix }}frontend
+spec:
+  selector:
+    matchLabels:
+      app: {{ .Values.suffix }}guestbook
+      tier: frontend
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: {{ .Values.suffix }}guestbook
+        tier: frontend
+    spec:
+      containers:
+      - name: php-redis
+        image: gcr.io/google-samples/gb-frontend:v4
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        env:
+        - name: GET_HOSTS_FROM
+          value: dns
+        ports:
+        - containerPort: 80
